@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enigma Business Report Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f3a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #9ca3af;
+            font-size: 1.1em;
+        }
+
+        .input-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            margin: 40px auto;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 1.1em;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        button {
+            padding: 16px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .report {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        h3 {
+            color: #8b95ea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .list-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid #667eea;
+            border-radius: 6px;
+        }
+
+        .competitor {
+            margin-bottom: 20px;
+        }
+
+        .competitor h4 {
+            color: #a5b4fc;
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge-high { background: #10b981; color: white; }
+        .badge-medium { background: #f59e0b; color: white; }
+        .badge-low { background: #6b7280; color: white; }
+
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            .input-section, .btn-group { display: none; }
+            .section {
+                background: white;
+                border: 1px solid #ddd;
+                page-break-inside: avoid;
+            }
+            h1, h2, h3 { color: #333; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Enigma Business Report Generator</h1>
+            <p class="subtitle">Enter any business name to generate a comprehensive analysis report</p>
+        </header>
+
+        <div class="input-section" id="inputSection">
+            <input type="text" id="businessName" placeholder="Enter business name (e.g., Joe's Pizza, Tech Solutions Inc)" />
+            <button onclick="generateReport()" id="generateBtn">Generate Report</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing business and generating report...</p>
+        </div>
+
+        <div class="report" id="report">
+            <div class="report-header">
+                <h2 id="reportTitle"></h2>
+                <div class="btn-group">
+                    <button class="btn-secondary" onclick="window.print()">📄 Export to PDF</button>
+                    <button class="btn-secondary" onclick="newReport()">🔄 New Report</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📊 Business Overview</h3>
+                <p id="overview"></p>
+            </div>
+
+            <div class="section">
+                <h3>💪 Strengths</h3>
+                <div id="strengths"></div>
+            </div>
+
+            <div class="section">
+                <h3>⚠️ Weaknesses</h3>
+                <div id="weaknesses"></div>
+            </div>
+
+            <div class="section">
+                <h3>💰 Revenue Generation Opportunities</h3>
+                <div id="revenue"></div>
+            </div>
+
+            <div class="section">
+                <h3>🎯 Competitor Analysis</h3>
+                <div id="competitors"></div>
+            </div>
+
+            <div class="section">
+                <h3>📈 Market Trends</h3>
+                <div id="trends"></div>
+            </div>
+
+            <div class="section">
+                <h3>🔍 SEO Keywords & Search Terms</h3>
+                <table id="keywords">
+                    <thead>
+                        <tr>
+                            <th>Keyword</th>
+                            <th>Monthly Searches</th>
+                            <th>Difficulty</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h3>✅ Action Plan</h3>
+                <div id="actionPlan"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generateReport() {
+            const businessName = document.getElementById('businessName').value.trim();
+            if (!businessName) {
+                alert('Please enter a business name');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('inputSection').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+
+            // Simulate API call
+            setTimeout(() => {
+                createReport(businessName);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('report').style.display = 'block';
+            }, 2000);
+        }
+
+        function createReport(businessName) {
+            const industry = detectIndustry(businessName);
+            
+            document.getElementById('reportTitle').textContent = businessName + ' - Business Analysis Report';
+            document.getElementById('overview').textContent = `${businessName} operates in the ${industry} sector. This comprehensive analysis provides insights into market positioning, competitive landscape, and growth opportunities through website optimization and strategic SEO implementation.`;
+
+            // Strengths
+            const strengths = [
+                `Strong brand identity in ${industry} market`,
+                'Opportunity to capture online market share',
+                'Growing customer demand for digital presence',
+                'Potential for local SEO dominance',
+                'Untapped social media marketing potential'
+            ];
+            document.getElementById('strengths').innerHTML = strengths.map(s => `<div class="list-item">${s}</div>`).join('');
+
+            // Weaknesses
+            const weaknesses = [
+                'Limited online visibility',
+                'No comprehensive digital marketing strategy',
+                'Competitors may have established web presence',
+                'Lack of SEO optimization',
+                'Missing opportunities for online customer acquisition'
+            ];
+            document.getElementById('weaknesses').innerHTML = weaknesses.map(w => `<div class="list-item">${w}</div>`).join('');
+
+            // Revenue Opportunities
+            const revenue = [
+                '<strong>Professional Website Development:</strong> Create a modern, mobile-responsive website to capture 24/7 leads',
+                '<strong>Local SEO Optimization:</strong> Rank for local searches to drive foot traffic and calls',
+                '<strong>Content Marketing:</strong> Blog posts and resources to attract organic traffic',
+                '<strong>Google My Business:</strong> Optimize for local pack rankings',
+                '<strong>Online Booking/E-commerce:</strong> Enable direct transactions through your website',
+                '<strong>Email Marketing:</strong> Build customer database for repeat business'
+            ];
+            document.getElementById('revenue').innerHTML = revenue.map(r => `<div class="list-item">${r}</div>`).join('');
+
+            // Competitors
+            const competitors = generateCompetitors(industry, businessName);
+            document.getElementById('competitors').innerHTML = competitors.map(c => `
+                <div class="competitor">
+                    <h4>${c.name}</h4>
+                    <p><strong>Website:</strong> ${c.website}</p>
+                    <p>${c.description}</p>
+                    <p><strong>Key Strength:</strong> ${c.strength}</p>
+                </div>
+            `).join('');
+
+            // Market Trends
+            const trends = generateTrends(industry);
+            document.getElementById('trends').innerHTML = trends.map(t => `
+                <div class="list-item">
+                    <strong>${t.trend}</strong><br>
+                    ${t.description}
+                </div>
+            `).join('');
+
+            // SEO Keywords
+            const keywords = generateKeywords(businessName, industry);
+            const tbody = document.getElementById('keywords').querySelector('tbody');
+            tbody.innerHTML = keywords.map(k => `
+                <tr>
+                    <td>${k.keyword}</td>
+                    <td>${k.volume.toLocaleString()}</td>
+                    <td><span class="badge badge-${k.difficulty}">${k.difficulty}</span></td>
+                </tr>
+            `).join('');
+
+            // Action Plan
+            const actions = [
+                'Conduct comprehensive keyword research for your industry',
+                'Register domain name and set up professional hosting',
+                'Design and develop mobile-responsive website',
+                'Create compelling service/product descriptions',
+                'Set up Google My Business and optimize listing',
+                'Implement on-page SEO (titles, meta descriptions, headers)',
+                'Create location-based landing pages',
+                'Build quality backlinks from local directories',
+                'Set up Google Analytics and Search Console',
+                'Launch monthly content marketing strategy'
+            ];
+            document.getElementById('actionPlan').innerHTML = actions.map((a, i) => `<div class="list-item"><strong>${i+1}.</strong> ${a}</div>`).join('');
+        }
+
+        function detectIndustry(name) {
+            name = name.toLowerCase();
+            if (name.includes('pizza') || name.includes('restaurant') || name.includes('cafe') || name.includes('food')) return 'Food & Beverage';
+            if (name.includes('dental') || name.includes('clinic') || name.includes('medical') || name.includes('health')) return 'Healthcare';
+            if (name.includes('tech') || name.includes('software') || name.includes('digital')) return 'Technology';
+            if (name.includes('law') || name.includes('legal') || name.includes('attorney')) return 'Legal Services';
+            if (name.includes('gym') || name.includes('fitness') || name.includes('yoga')) return 'Fitness & Wellness';
+            if (name.includes('salon') || name.includes('spa') || name.includes('beauty')) return 'Beauty & Personal Care';
+            if (name.includes('auto') || name.includes('car') || name.includes('mechanic')) return 'Automotive';
+            return 'Professional Services';
+        }
+
+        function generateCompetitors(industry, businessName) {
+            const templates = {
+                'Food & Beverage': [
+                    {name: 'Local Eats Co', website: 'localeats.com', description: 'Regional chain with strong online ordering', strength: 'Advanced mobile app'},
+                    {name: 'Fresh Bites', website: 'freshbites.com', description: 'Farm-to-table concept with delivery', strength: 'Social media presence'},
+                    {name: 'The Corner Spot', website: 'cornerspot.com', description: 'Community favorite with catering', strength: 'Local SEO rankings'},
+                    {name: 'Urban Kitchen', website: 'urbankitchen.com', description: 'Modern fast-casual dining', strength: 'Online reviews (4.8★)'}
+                ],
+                'Healthcare': [
+                    {name: 'City Medical Group', website: 'citymedical.com', description: 'Multi-location practice', strength: 'Online booking system'},
+                    {name: 'Prime Health Center', website: 'primehealthcenter.com', description: 'Comprehensive care facility', strength: 'Patient portal'},
+                    {name: 'Wellness First', website: 'wellnessfirst.com', description: 'Preventive care focus', strength: 'Educational content'},
+                    {name: 'Community Care', website: 'communitycare.com', description: 'Affordable healthcare provider', strength: 'Insurance partnerships'}
+                ],
+                'default': [
+                    {name: `${industry} Leader Co`, website: 'industryleader.com', description: 'Established market presence', strength: 'Brand recognition'},
+                    {name: 'Premier Solutions', website: 'premiersolutions.com', description: 'Full-service provider', strength: 'Customer testimonials'},
+                    {name: 'Elite Services', website: 'eliteservices.com', description: 'Premium service offering', strength: 'High-end clientele'},
+                    {name: 'Smart Choice', website: 'smartchoice.com', description: 'Value-focused competitor', strength: 'Competitive pricing'}
+                ]
+            };
+            return templates[industry] || templates['default'];
+        }
+
+        function generateTrends(industry) {
+            return [
+                {trend: 'Digital Transformation', description: '78% of customers research online before purchasing'},
+                {trend: 'Mobile-First Browsing', description: '65% of searches now happen on mobile devices'},
+                {trend: 'Local Search Growth', description: '"Near me" searches increased 900% in recent years'},
+                {trend: 'Voice Search Adoption', description: '50% of searches will be voice-based by 2025'},
+                {trend: 'Video Content Demand', description: 'Video content generates 1200% more shares than text'}
+            ];
+        }
+
+        function generateKeywords(businessName, industry) {
+            const baseTerms = businessName.toLowerCase().split(' ');
+            const keywords = [
+                {keyword: `${baseTerms[0]} near me`, volume: 8900, difficulty: 'medium'},
+                {keyword: `best ${industry.toLowerCase()} services`, volume: 12400, difficulty: 'high'},
+                {keyword: `${baseTerms[0]} reviews`, volume: 3200, difficulty: 'low'},
+                {keyword: `${industry.toLowerCase()} in [city]`, volume: 6700, difficulty: 'medium'},
+                {keyword: `top ${baseTerms[0]}`, volume: 4100, difficulty: 'medium'},
+                {keyword: `affordable ${industry.toLowerCase()}`, volume: 5800, difficulty: 'low'},
+                {keyword: `${businessName}`, volume: 1200, difficulty: 'low'},
+                {keyword: `${industry.toLowerCase()} options`, volume: 9300, difficulty: 'high'}
+            ];
+            return keywords;
+        }
+
+        function newReport() {
+            document.getElementById('report').style.display = 'none';
+            document.getElementById('inputSection').style.display = 'block';
+            document.getElementById('businessName').value = '';
+        }
+    </script>
+</body>
+</html>
